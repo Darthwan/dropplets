@@ -1,23 +1,16 @@
-*.espressostorage
-*.esproj
-*.pxm
-.DS_Store
-
 .htaccess
 config.php
 verify.php
 
-posts/*.md
-posts/*.jpg
-
 templates/*
 !templates/simple/
+!templates/base/
 
-plugins/*
-!plugins/index.php
+core/plugins/*
+!core/plugins/index.php
 
-posts/*
-!posts/index.php
+posts/*.md
+posts/*.jpg
 
 cache/*.png
 cache/*.jpeg

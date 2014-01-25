@@ -12,8 +12,8 @@ if (file_exists('./config.php')) {
 /* Get Settings & Functions
 /*-----------------------------------------------------------------------------------*/
 
-include('./dropplets/settings.php');
-include('./dropplets/functions.php');
+include('./core/settings.php');
+include('./core/functions.php');
 
 /*-----------------------------------------------------------------------------------*/
 /* Reading File Names
@@ -25,7 +25,7 @@ if (empty($_GET['filename'])) {
 } else if($_GET['filename'] == 'rss' || $_GET['filename'] == 'atom') {
     $filename = $_GET['filename'];
 }  else {
-    
+
     //Filename can be /some/blog/post-filename.md We should get the last part only
     $filename = explode('/',$_GET['filename']);
 
@@ -34,7 +34,7 @@ if (empty($_GET['filename'])) {
         $category = $filename[count($filename) - 1];
         $filename = null;
     } else {
-      
+
         // Individual Post
         $filename = POSTS_DIR . $filename[count($filename) - 1] . FILE_EXT;
     }
@@ -78,6 +78,10 @@ if ($filename==NULL) {
         $content = '';
         foreach($posts as $post) {
 
+            // Get the post status.
+            $post_status = $post['post_status'];
+            if ($post_status == 'draft') continue;
+
             // Get the post title.
             $post_title = str_replace(array("\n",'<h1>','</h1>'), '', $post['post_title']);
 
@@ -91,22 +95,19 @@ if ($filename==NULL) {
             $published_iso_date = $post['post_date'];
 
             // Generate the published date.
-            $published_date = strftime($date_format, strtotime($published_iso_date));
+            $published_date = date_format(date_create($published_iso_date), $date_format);
 
             // Get the post category.
             $post_category = $post['post_category'];
-            
+
             // Get the post category link.
             $post_category_link = $blog_url.'category/'.urlencode(trim(strtolower($post_category)));
 
-            // Get the post status.
-            $post_status = $post['post_status'];
+            // Get the post content
+            $post_content = $post['post_content'];
 
             // Get the post intro.
             $post_intro = $post['post_intro'];
-
-            // Get the post content
-            $post_content = $post['post_content'];
 
             // Get the post link.
             if ($category) {
@@ -115,10 +116,16 @@ if ($filename==NULL) {
                 $post_link = $blog_url.str_replace(FILE_EXT, '', $post['fname']);
             }
 
-            // Get the post image url.
-            $post_image = get_post_image_url( $post['fname'] ) ?: get_twitter_profile_img($post_author_twitter);
+            $post_name = $post['fname'];
 
-            if ($post_status == 'draft') continue;
+            // Get the post image url.
+            $image = str_replace(array(FILE_EXT), '', POSTS_DIR.$post['fname']).'.jpg';
+
+            if (file_exists($image)) {
+                $post_image = $blog_url.str_replace(array(FILE_EXT, './'), '', POSTS_DIR . $post['fname']).'.jpg';
+            } else {
+                $post_image = get_twitter_profile_img($post_author_twitter);
+            }
 
             // Get the milti-post template file.
             include $posts_file;
@@ -308,7 +315,7 @@ else {
         $post_title = str_replace(array("\n",'<h1>','</h1>'), '', $post_title);
 
         // Get the post intro.
-        $post_intro = htmlspecialchars(trim($fcontents[7]));
+        $post_intro = htmlspecialchars($fcontents[7]);
 
         // Get the post author.
         $post_author = str_replace(array("\n", '-'), '', $fcontents[1]);
@@ -320,32 +327,46 @@ else {
         $published_iso_date = str_replace('-', '', $fcontents[3]);
 
         // Generate the published date.
-        $published_date = strftime($date_format, strtotime($published_iso_date));
+        $published_date = date_format(date_create($published_iso_date), $date_format);
 
         // Get the post category.
         $post_category = str_replace(array("\n", '-'), '', $fcontents[4]);
-        
+
         // Get the post status.
         $post_status = str_replace(array("\n", '- '), '', $fcontents[5]);
-        
+
         // Get the post category link.
         $post_category_link = $blog_url.'category/'.urlencode(trim(strtolower($post_category)));
 
         // Get the post link.
         $post_link = $blog_url.str_replace(array(FILE_EXT, POSTS_DIR), '', $filename);
 
+        $post_name = $filename;
+
         // Get the post image url.
-        $post_image = get_post_image_url($filename) ?: get_twitter_profile_img($post_author_twitter);
+        $image = str_replace(array(FILE_EXT), '', $filename).'.jpg';
+
+        if (file_exists($image)) {
+            $post_image = $blog_url.str_replace(array(FILE_EXT, './'), '', $filename).'.jpg';
+        } else {
+            $post_image = get_twitter_profile_img($post_author_twitter);
+        }
 
         // Get the post content
-        $file_array = array_slice( file($filename), 7);
-        $post_content = Markdown(trim(implode("", $file_array)));
+        $file_array = file($filename);
 
-        // free memory
-        unset($file_array);
-                
+        unset($file_array[0]);
+        unset($file_array[1]);
+        unset($file_array[2]);
+        unset($file_array[3]);
+        unset($file_array[4]);
+        unset($file_array[5]);
+        unset($file_array[6]);
+
+        $post_content = Markdown(implode("", $file_array));
+
         // Get the site title.
-        $page_title = trim(str_replace('# ', '', $fcontents[0]));
+        $page_title = str_replace('# ', '', $fcontents[0]);
 
         // Generate the page description and author meta.
         $get_page_meta[] = '<meta name="description" content="' . $post_intro . '">';
@@ -369,7 +390,7 @@ else {
         $get_page_meta[] = '<meta property="og:image" content="' . $post_image . '">';
 
         // Generate all page meta.
-        $page_meta = implode("\n\t", $get_page_meta);
+        $page_meta = implode("\n", $get_page_meta);
 
         // Generate the post.
         $post = Markdown(join('', $fcontents));
@@ -406,12 +427,12 @@ else {
     $path = $_SERVER["REQUEST_URI"];
 
     // Check if running on alternate port.
-    if ($protocol === "https://") {
+    if ($protocol == "https://") {
         if ($port == 443)
             $url = $protocol . $domain;
         else
             $url = $protocol . $domain . ":" . $port;
-    } elseif ($protocol === "http://") {
+    } elseif ($protocol == "http://") {
         if ($port == 80)
             $url = $protocol . $domain;
         else
@@ -419,7 +440,7 @@ else {
     }
 
     $url .= $path;
-    
+
     // Check if the install directory is writable.
     $is_writable = (TRUE == is_writable(dirname(__FILE__) . '/'));
     ?>
@@ -429,34 +450,35 @@ else {
         <head>
             <meta charset="utf-8" />
             <title>Let's Get Started</title>
-            <link rel="stylesheet" href="./dropplets/style/style.css" />
-            <link href='http://fonts.googleapis.com/css?family=Lato:100,300' rel='stylesheet' type='text/css'>
-            <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400' rel='stylesheet' type='text/css'>
-            <link rel="shortcut icon" href="./dropplets/style/images/favicon.png">
+            <link rel="stylesheet" href="templates/base/base.css" />
+            <link rel="shortcut icon" href="templates/base/favicon.ico">
         </head>
 
         <body class="dp-install">
-            <form method="POST" action="./dropplets/save.php">
+            <form method="POST" action="./core/save.php">
                 <a class="dp-icon-dropplets" href="http://dropplets.com" target="_blank"></a>
-                
+
                 <h2>Install Dropplets</h2>
                 <p>Welcome to an easier way to blog.</p>
-                
+
                 <input type="password" name="password" id="password" required placeholder="Choose Your Password">
                 <input type="password" name="password-confirmation" id="password-confirmation" required placeholder="Confirm Your Password" onblur="confirmPass()">
 
                 <input hidden type="text" name="blog_email" id="blog_email" value="hi@dropplets.com">
                 <input hidden type="text" name="blog_twitter" id="blog_twitter" value="dropplets">
+                <input hidden type="text" name="blog_google" id="blog_google" value="">
+                <input hidden type="text" name="blog_flattr" id="blog_flattr" value="">
                 <input hidden type="text" name="blog_url" id="blog_url" value="<?php echo($url) ?><?php if ($url == $domain) { ?>/<?php } ?>">
                 <input hidden type="text" name="template" id="template" value="simple">
                 <input hidden type="text" name="blog_title" id="blog_title" value="Welcome to Dropplets">
+                <input hidden type="text" name="blog_language" id="blog_language" value="en_US">
                 <textarea hidden name="meta_description" id="meta_description"></textarea>
                 <input hidden type="text" name="intro_title" id="intro_title" value="Welcome to Dropplets">
                 <textarea hidden name="intro_text" id="intro_text">In a flooded selection of overly complex solutions, Dropplets has been created in order to deliver a much needed alternative. There is something to be said about true simplicity in the design, development and management of a blog. By eliminating all of the unnecessary elements found in typical solutions, Dropplets can focus on pure design, typography and usability. Welcome to an easier way to blog.</textarea>
 
     		    <button type="submit" name="submit" value="submit">k</button>
     		</form>
-                
+
             <?php if (!$is_writable) { ?>
                 <p style="color:red;">It seems that your config folder is not writable, please add the necessary permissions.</p>
             <?php } ?>
@@ -472,7 +494,7 @@ else {
             </script>
         </body>
     </html>
-<?php 
+<?php
 
 /*-----------------------------------------------------------------------------------*/
 /* That's All There is to It

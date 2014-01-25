@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /*-----------------------------------------------------------------------------------*/
 /* Debug Mode
@@ -25,8 +25,12 @@ include('./config.php');
 // Definitions from the included configs above.
 define('BLOG_EMAIL', $blog_email);
 define('BLOG_TWITTER', $blog_twitter);
+define('BLOG_GOOGLE', $blog_google);
+define('BLOG_FACEBOOK', $blog_facebook);
+define('BLOG_FLATTR', $blog_flattr);
 define('BLOG_URL', $blog_url);
 define('BLOG_TITLE', $blog_title);
+define('BLOG_LANGUAGE', $blog_language);
 define('META_DESCRIPTION', $meta_description);
 define('INTRO_TITLE', $intro_title);
 define('INTRO_TEXT', $intro_text);
@@ -40,11 +44,9 @@ define('ACTIVE_TEMPLATE', $template);
 
 $language = 'en-us';
 $feed_max_items = '10';
-$date_format = '%B %d, %Y';
+$date_format = 'F jS, Y';
 $error_title = 'Sorry, But That&#8217;s Not Here';
 $error_text = 'Really sorry, but what you&#8217;re looking for isn&#8217;t here. Click the button below to find something else that might interest you.';
-
-setlocale(LC_ALL, '');
 
 /*-----------------------------------------------------------------------------------*/
 /* Post Configuration
@@ -66,7 +68,7 @@ if (glob($post_directory . '*.md') != false)
 {
     $posts_dir = './posts/';
 } else {
-    $posts_dir = './dropplets/welcome/';
+    $posts_dir = './posts/welcome/';
 }
 
 // Definitions from the settings above.
@@ -97,7 +99,7 @@ $template_dir = './templates/' . $template . '/';
 $template_dir_url = $blog_url . 'templates/' . $template . '/';
 
 // Get the active template files.
-$index_file = $template_dir . 'index.php';
+$index_file = $template_dir . 'note.php';
 $post_file = $template_dir . 'post.php';
 $posts_file = $template_dir . 'posts.php';
 $not_found_file = $template_dir . '404.php';

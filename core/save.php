@@ -5,8 +5,7 @@ session_start();
 // File locations.
 $settings_file = "../config.php";
 $htaccess_file = "../.htaccess";
-$phpass_file   = '../dropplets/includes/phpass.php';
-$dir = '';
+$phpass_file   = '../core/includes/phpass.php';
 
 // Get existing settings.
 if (file_exists($settings_file)) {
@@ -36,11 +35,23 @@ if ($_POST["submit"] == "submit" && (!file_exists($settings_file) || isset($_SES
     if (isset($_POST["blog_twitter"])) {
         $blog_twitter = $_POST["blog_twitter"];
     }
+    if (isset($_POST["blog_google"])) {
+        $blog_google = $_POST["blog_google"];
+    }
+    if (isset($_POST["blog_facebook"])) {
+        $blog_facebook = $_POST["blog_facebook"];
+    }
+    if (isset($_POST["blog_flattr"])) {
+        $blog_flattr = $_POST["blog_flattr"];
+    }
     if (isset($_POST["blog_url"])) {
         $blog_url = $_POST["blog_url"];
     }
     if (isset($_POST["blog_title"])) {
         $blog_title = $_POST["blog_title"];
+    }
+    if (isset($_POST["blog_language"])) {
+        $blog_language = $_POST["blog_language"];
     }
     if (isset($_POST["meta_description"])) {
         $meta_description = $_POST["meta_description"];
@@ -62,7 +73,7 @@ if ($_POST["submit"] == "submit" && (!file_exists($settings_file) || isset($_SES
     }
 
     if(!isset($header_inject)) {
-        $header_inject = "";        
+        $header_inject = "";
     }
 
     if(isset($_POST["header_inject"])) {
@@ -72,20 +83,24 @@ if ($_POST["submit"] == "submit" && (!file_exists($settings_file) || isset($_SES
     if(!isset($footer_inject)) {
         $footer_inject = "";
     }
-    
+
     if(isset($_POST["footer_inject"])) {
         $footer_inject = addslashes($_POST["footer_inject"]);
     }
 
     // Get subdirectory
-    $dir .= str_replace('dropplets/save.php', '', $_SERVER["REQUEST_URI"]);
+    $dir .= str_replace('core/save.php', '', $_SERVER["REQUEST_URI"]);
 
     // Output submitted setup values.
     $config[] = "<?php";
     $config[] = settings_format("blog_email", $blog_email);
     $config[] = settings_format("blog_twitter", $blog_twitter);
+    $config[] = settings_format("blog_google", $blog_google);
+    $config[] = settings_format("blog_facebook", $blog_facebook);
+    $config[] = settings_format("blog_flattr", $blog_flattr);
     $config[] = settings_format("blog_url", $blog_url);
     $config[] = settings_format("blog_title", $blog_title);
+    $config[] = settings_format("blog_language", $blog_language);
     $config[] = settings_format("meta_description", $meta_description);
     $config[] = settings_format("intro_title", $intro_title);
     $config[] = settings_format("intro_text", $intro_text);
@@ -93,14 +108,17 @@ if ($_POST["submit"] == "submit" && (!file_exists($settings_file) || isset($_SES
     $config[] = settings_format("header_inject", $header_inject);
     $config[] = settings_format("footer_inject", $footer_inject);
     $config[] = settings_format("template", $template);
-    
+
     // Create the settings file.
     file_put_contents($settings_file, implode("\n", $config));
-    
+
     // Generate the .htaccess file on initial setup only.
     if (!file_exists($htaccess_file)) {
-    
+
         // Parameters for the htaccess file.
+        $htaccess[] = "AddDefaultCharset utf-8";
+        $htaccess[] = "AddType text/plain .md";
+        $htaccess[] = "Options -Indexes";
         $htaccess[] = "# Pretty Permalinks";
         $htaccess[] = "RewriteRule ^(images)($|/) - [L]";
         $htaccess[] = "RewriteCond %{REQUEST_URI} !^action=logout [NC]";
@@ -111,7 +129,7 @@ if ($_POST["submit"] == "submit" && (!file_exists($settings_file) || isset($_SES
         $htaccess[] = "RewriteCond %{REQUEST_URI} !index\.php";
         $htaccess[] = "RewriteCond %{REQUEST_FILENAME} !-f";
         $htaccess[] = "RewriteRule ^(.*)$ index.php?filename=$1 [NC,QSA,L]";
-    
+
         // Generate the .htaccess file.
         file_put_contents($htaccess_file, implode("\n", $htaccess));
     }

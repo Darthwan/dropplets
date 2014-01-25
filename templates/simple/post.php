@@ -2,13 +2,14 @@
     <div class="row">
         <div class="one-quarter meta">
             <div class="thumbnail">
-                <img src="<?php echo($post_image); ?>" alt="<?php echo($post_title); ?>" />
+                <a href="<?php echo($blog_url); ?>" title="Back home!"><img src="<?php echo($post_image); ?>" alt="<?php echo($post_title); ?>" /></a>
             </div>
 
             <ul>
                 <li>Written by <?php echo($post_author); ?></li>
                 <li><?php echo($published_date); ?></li>
                 <li>About <a href="<?php echo($post_category_link); ?>"><?php echo($post_category); ?></a></li>
+                <li><a href="https://twitter.com/<?php echo($post_author_twitter); ?>">&#64;<?php echo($post_author_twitter); ?></a></li>
                 <li></li>
             </ul>
         </div>
@@ -18,12 +19,25 @@
             <?php echo($post_content); ?>
 
             <ul class="actions">
-                <li><a class="button" href="https://twitter.com/intent/tweet?screen_name=<?php echo($post_author_twitter); ?>&text=Re:%20<?php echo($post_link); ?>%20" data-dnt="true">Comment on Twitter</a></li>
-                <li><a class="button" href="https://twitter.com/intent/tweet?text=&quot;<?php echo($post_title); ?>&quot;%20<?php echo($post_link); ?>%20via%20&#64;<?php echo($post_author_twitter); ?>" data-dnt="true">Share on Twitter</a></li>
+                <li><a class="button" href="https://twitter.com/intent/tweet?screen_name=<?php echo($post_author_twitter); ?>&text=<?php echo($post_link); ?>%20(cc%20&#64;<?php echo($post_author_twitter); ?>)" data-dnt="true">Comment on Twitter</a></li>
+                <li><a class="button" href="<?php echo($blog_url); ?><?php echo($post_name); ?>">Source ".md"</a></li>
+                <?php if($blog_flattr != "") { ?><li><a class="button" href="https://flattr.com/submit/auto?user_id=<?php echo($blog_flattr); ?>&amp;url=<?php echo $post_link; ?>&amp;title=<?php echo($post_title); ?>&amp;language=<?php echo $blog_language; ?>&amp;category=text">Flattr me!</a></li><?php } ?>
                 <li><a class="button" href="<?php echo($blog_url); ?>">More Articles</a></li>
+            </ul>
+            <ul class="actions">
+                <li><a class="button" href="https://twitter.com/intent/tweet?text=&quot;<?php echo($post_title); ?>&quot;%20<?php echo($post_link); ?>%20via%20&#64;<?php echo($post_author_twitter); ?>" data-dnt="true">Share on Twitter</a></li>
+                <li><a class="button" href="" data-dnt="true">Share on Facebook</a></li>
+                <li><a class="button" href="" data-dnt="true">Share on Google+</a></li>
             </ul>
 
             <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+            <div class="clear"></div>
+            <footer>
+                <?php echo($blog_title); ?> est mis à disposition selon les termes de la licence Creative Commons Paternité - Partage à l'Identique 3.0 non transcrit (<a href="http://creativecommons.org/licenses/by-sa/3.0/">en savoir plus</a>). Source: <a href="<?php echo BLOG_URL; ?>"><?php echo BLOG_URL; ?></a>.<br />
+                Propulsé grâce à <a href="http://dropplets.com/">Dropplets</a> avec de nombreuses modifications.<br />
+                <a href="https://github.com/Hennek/dropplets/issues">Signaler un problème</a> !
+            </footer>
         </div>
     </div>
 </article>

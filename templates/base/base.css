@@ -37,9 +37,11 @@ body.dp-install a {
 }
 
 .dp-panel ol,
-.dp-panel ul { 
+.dp-panel ul {
     list-style: none;
 }
+
+.clear { clear: both; }
 
 /* The Install Screen
 *********************************************************************************************/
@@ -167,7 +169,7 @@ body.dp-install form button:hover {
 	-webkit-font-smoothing: antialiased;
 }
 .dp-icon-dropplets:before {
-	content: "\64";
+	content: "\74";
 }
 .dp-icon-key:before {
 	content: "\6c";
@@ -260,8 +262,8 @@ body.dp-install form button:hover {
     overflow-x: hidden;
 }
 
-.dp-panel ::-webkit-scrollbar { 
-    display: none; 
+.dp-panel ::-webkit-scrollbar {
+    display: none;
 }
 
 .dp-sub-panel {
@@ -275,6 +277,9 @@ body.dp-install form button:hover {
 .dp-panel .dp-row .title {
     font-size: 14px;
     font-weight: bold;
+    padding-left: 10px;
+    line-height: 35px;
+    display: block;
 }
 
 .dp-panel a {
@@ -340,10 +345,14 @@ body.dp-install form button:hover {
 .dp-panel .dp-row.profile img{
     background-color:  #ffffff;
     border-radius: 50%;
-    width: 30px;
-    height: 30px;
+    width: 45px;
+    height: 45px;
     float: left;
-    margin: -2px 0 0 -2px;
+    margin: -5px 10px 0px -5px;
+}
+
+.dp-panel .dp-row.profile {
+    min-height: 35px;
 }
 
 /* Form Styles
@@ -382,14 +391,14 @@ body.dp-install form button:hover {
     -webkit-transition-duration: 0.1s;
 }
 
-@-moz-document url-prefix() { 
+@-moz-document url-prefix() {
     .dp-panel .dp-row.dp-editable .dp-content input[type="text"],
     .dp-panel .dp-row.dp-editable .dp-content input[type="password"],
     .dp-panel .dp-row.dp-editable .dp-content input[type="email"],
     .dp-panel .dp-row.dp-editable .dp-content textarea {
         margin-top: 3px;
     }
-    
+
     .dp-panel .dp-row.dp-editable .dp-content textarea {
         width: 230px;
         padding-right: 40px;
