@@ -47,18 +47,6 @@
                         <?php if($blog_google != "") { ?><span><a href="https://plus.google.com/u/0/<?php echo($blog_google); ?>">Google+</a></span><?php } ?>
                         <?php if($blog_facebook != "") { ?><span><a href="https://facebook.com/<?php echo($blog_facebook); ?>">Facebook</a></span><?php } ?>
                     </p>
-
-                    <script>
-                        !function(d,s,id) {
-                            var js, fjs = d.getElementsByTagName(s)[0];
-                            if(!d.getElementById(id)) {
-                                js = d.createElement(s);
-                                js.id = id;
-                                js.src = "//platform.twitter.com/widgets.js";
-                                fjs.parentNode.insertBefore(js,fjs);
-                            }
-                        }(document,"script","twitter-wjs");
-                    </script>
                 </div>
             </div>
         </article>

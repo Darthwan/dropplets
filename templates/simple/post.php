@@ -26,11 +26,9 @@
             </ul>
             <ul class="actions">
                 <li><a class="button" href="https://twitter.com/intent/tweet?text=&quot;<?php echo($post_title); ?>&quot;%20<?php echo($post_link); ?>%20via%20&#64;<?php echo($post_author_twitter); ?>" data-dnt="true">Share on Twitter</a></li>
-                <li><a class="button" href="" data-dnt="true">Share on Facebook</a></li>
-                <li><a class="button" href="" data-dnt="true">Share on Google+</a></li>
+                <li><a class="button" href="https://www.facebook.com/sharer.php?u=<?php echo($post_link); ?>&amp;t=<?php echo($post_title); ?>" data-dnt="true">Share on Facebook</a></li>
+                <li><a class="button" href="https://plus.google.com/share?url=<?php echo($post_link); ?>&amp;hl=fr" data-dnt="true">Share on Google+</a></li>
             </ul>
-
-            <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
 
             <div class="clear"></div>
             <footer>
