@@ -31,7 +31,7 @@
             <div class="row">
                 <div class="meta">
                     <div class="thumbnail">
-                        <img src="<?php echo get_twitter_profile_img($blog_twitter); ?>" alt="profile" />
+                        <a href="<?php echo BLOG_URL; ?>" title="Back home!"><img src="<?php echo get_twitter_profile_img($blog_twitter); ?>" alt="profile" /></a>
                     </div>
                 </div>
 
@@ -41,11 +41,11 @@
                     <p><?php echo($intro_text); ?></p>
 
                     <p class="post-social">
-                        <span><a href="mailto:<?php echo($blog_email); ?>?subject=Hello"><?php echo($blog_email); ?></a></span>
-                        <?php if($blog_flattr != "") { ?><span><a href="https://flattr.com/submit/auto?user_id=<?php echo($blog_flattr); ?>&amp;url=<?php echo BLOG_URL; ?>&amp;title=<?php echo($blog_title); ?>&amp;language=<?php echo $blog_language; ?>&amp;category=text">Flattr</a></span><?php } ?>
-                        <span><a href="https://twitter.com/<?php echo($blog_twitter); ?>">&#64;<?php echo($blog_twitter); ?></a></span>
-                        <?php if($blog_google != "") { ?><span><a href="https://plus.google.com/u/0/<?php echo($blog_google); ?>">Google+</a></span><?php } ?>
-                        <?php if($blog_facebook != "") { ?><span><a href="https://facebook.com/<?php echo($blog_facebook); ?>">Facebook</a></span><?php } ?>
+                        <?php if($blog_google != "") { ?><span><a href="https://twitter.com/<?php echo($blog_twitter); ?>" title="&#64;<?php echo($blog_twitter); ?>"><i class="icon-twitter"></i></a></span><?php } ?>
+                        <?php if($blog_google != "") { ?><span><a href="https://plus.google.com/u/0/<?php echo($blog_google); ?>" title="Google+"><i class="icon-google"></i></a></span><?php } ?>
+                        <?php if($blog_facebook != "") { ?><span><a href="https://facebook.com/<?php echo($blog_facebook); ?>" title="Facebook"><i class="icon-facebook"></i></a></span><?php } ?>
+                        <?php if($blog_flattr != "") { ?><span><a href="https://flattr.com/submit/auto?user_id=<?php echo($blog_flattr); ?>&amp;url=<?php echo BLOG_URL; ?>&amp;title=<?php echo($blog_title); ?>&amp;language=<?php echo $blog_language; ?>&amp;category=text" title="Flattr"><i class="icon-flattr"></i></a></span><?php } ?>
+                        <span><a href="<?php echo BLOG_URL; ?>rss" title="Flux RSS"><i class="icon-rss"></i></a></span>
                     </p>
                 </div>
             </div>
