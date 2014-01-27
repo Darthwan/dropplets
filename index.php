@@ -4,6 +4,9 @@
 // @TODO : passer à true pour les erreurs
 // @TODO : gestion des erreurs lors d'une connexion
 // @TODO : permettre d'activer le cache via l'administration
+// @TODO : possibilité de tags
+// @TODO : scheduled publishing (see more on https://github.com/Circa75/dropplets/pull/300)
+// @TODO : language support
 
 session_start();
 
@@ -168,8 +171,7 @@ if ($filename == NULL) {
         $content = '';
         foreach($posts as $post) {
             // Get the post status.
-            $post_status = $post['post_status'];
-            if ($post_status == 'draft') continue;
+            if ($secure(trim(strtolower($post['post_status']))) == 'draft') continue;
 
             // Get the post link.
             if ($category)
