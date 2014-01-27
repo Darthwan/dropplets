@@ -215,9 +215,12 @@ function get_gravatar_profile_img($username) {
     $profile_image = BLOG_URL . 'cache/'.$username.'.jpg';
     $test = './cache/'.$username.'.jpg';
 
+    $default = "http://dropplets.com/favicon.png";
+    $size = 40;
+
     // Cache the image if it doesn't already exist.
     if (!file_exists($test)) {
-        $image_url = 'http://www.gravatar.com/avatar/' . md5(trim(strtolower($username))) . '?s=200&r=pg&d=identicon&f=y';
+        $image_url = 'http://www.gravatar.com/avatar/' . md5(trim(strtolower($username))) . '?s=' . $size . '&r=pg&d=' . urlencode($default) . '&f=y';
         $image = file_get_contents($image_url);
         file_put_contents('./cache/'.$username.'.jpg', $image);
     }
