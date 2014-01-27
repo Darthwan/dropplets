@@ -4,15 +4,13 @@
 /* If Logged Out, Get the Login Form
 /*-----------------------------------------------------------------------------------*/
 
-$login_error = LOGIN_ERROR;
-
 if (!isset($_SESSION['user'])) { ?>
 
-<div class="dp-panel-wrapper <?php if($_COOKIE['dp-panel']) { echo($_COOKIE['dp-panel']); } ?>" id="dp-dropplets">
+<div class="dp-panel-wrapper <?php if($_COOKIE['dp-panel']) { echo $_COOKIE['dp-panel']; } ?>" id="dp-dropplets">
     <div class="dp-panel">
         <div class="dp-row profile">
             <div class="dp-icon">
-                <img src="<?php echo get_twitter_profile_img(BLOG_TWITTER); ?>" alt="<?php echo(BLOG_TITLE); ?>" />
+                <img src="<?php echo get_twitter_profile_img(BLOG_TWITTER); ?>" alt="<?php echo BLOG_TITLE; ?>" />
             </div>
 
             <div class="dp-content">
@@ -25,7 +23,7 @@ if (!isset($_SESSION['user'])) { ?>
             <div class="dp-icon dp-icon-key"></div>
 
             <div class="dp-content">
-                <form method="POST" action="?action=login">
+                <form method="post" action="?action=login">
                     <label>Enter Your Password</label>
                     <input type="password" name="password" id="password">
                     <button class="dp-icon-checkmark" type="submit" name="submit" value="submit"></button>
@@ -43,11 +41,11 @@ if (!isset($_SESSION['user'])) { ?>
 
 } else { ?>
 
-<div class="dp-panel-wrapper <?php if($_COOKIE['dp-panel']) { echo($_COOKIE['dp-panel']); } ?>" id="dp-dropplets">
+<div class="dp-panel-wrapper <?php if($_COOKIE['dp-panel']) { echo $_COOKIE['dp-panel']; } ?>" id="dp-dropplets">
     <div class="dp-panel">
         <div class="dp-row profile">
             <div class="dp-icon">
-                <img src="<?php echo get_twitter_profile_img(BLOG_TWITTER); ?>" alt="<?php echo(BLOG_TITLE); ?>" />
+                <img src="<?php echo get_twitter_profile_img(BLOG_TWITTER); ?>" alt="<?php echo BLOG_TITLE; ?>" />
             </div>
 
             <div class="dp-content">
@@ -63,7 +61,7 @@ if (!isset($_SESSION['user'])) { ?>
             <input style="display: none;" type="file" name="postfiles" id="postfiles" class="postfiles" multiple="multiple" />
         </div>
 
-        <form method="POST" action="./core/save.php">
+        <form method="POST">
             <div class="dp-row">
                 <div class="dp-icon dp-icon-settings"></div>
                 <div class="dp-content">Blog Settings</div>
@@ -87,6 +85,15 @@ if (!isset($_SESSION['user'])) { ?>
                     <div class="dp-content">
                         <label>Blog Language</label>
                         <input type="text" name="blog_language" id="blog_language" value="<?php echo BLOG_LANGUAGE; ?>">
+                    </div>
+                </div>
+
+                <div class="dp-row dp-editable">
+                    <div class="dp-icon dp-icon-edit"></div>
+
+                    <div class="dp-content">
+                        <label>RSS Language</label>
+                        <input type="text" name="language_rss" id="language_rss" value="<?php echo LANGUAGE_RSS; ?>">
                     </div>
                 </div>
             </div>
@@ -259,7 +266,7 @@ if (!isset($_SESSION['user'])) { ?>
 
 <a class="dp-open dp-icon-dropplets" id="dp-dropplets-icon" href="#dp-dropplets"></a>
 
-<script type="text/javascript" src="<?php echo(BLOG_URL); ?>core/includes/js/cookies.js"></script>
+<script type="text/javascript" src="<?php echo BLOG_URL; ?>core/includes/js/cookies.js"></script>
 <script type="text/javascript">
     jQuery(document).ready(function($) {
         $(".dp-open").click(function(){
@@ -303,7 +310,7 @@ if (!isset($_SESSION['user'])) { ?>
 
 if (isset($_SESSION['user'])) { ?>
 
-<script type="text/javascript" src="<?php echo(BLOG_URL); ?>core/includes/js/uploader.js"></script>
+<script type="text/javascript" src="<?php echo BLOG_URL; ?>core/includes/js/uploader.js"></script>
 <script type="text/javascript">
     jQuery(document).ready(function($) {
         $('.postfiles').liteUploader(

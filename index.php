@@ -1,40 +1,136 @@
 <?php
 
+// @TODO : Gravatar for the picture profile
+// @TODO : passer à true pour les erreurs
+// @TODO : gestion des erreurs lors d'une connexion
+// @TODO : permettre d'activer le cache via l'administration
+
 session_start();
 
+require_once 'core/class.rain.tpl.php';
+require_once 'core/functions.php';
+require_once 'core/settings.php';
+
+if(!file_exists(SETTINGS_FILE))
+    require_once "core/install.php";
+
 /*-----------------------------------------------------------------------------------*/
-/* If There's a Config Exists, Continue
+/* User Machine
 /*-----------------------------------------------------------------------------------*/
 
-if (file_exists('./config.php')) {
+// Password hashing via phpass.
+$hasher = new PasswordHash(8,FALSE);
+
+if (isset($_GET['action'])) {
+    $action = $_GET['action'];
+
+    switch ($action) {
+        // Logging in.
+        case 'login':
+            if ((isset($_POST['password'])) && $hasher->CheckPassword($_POST['password'], PASSWORD)) {
+                $_SESSION['user'] = true;
+
+                // Redirect if authenticated.
+                header('Location: ./');
+                exit();
+            } else {
+                // Display error if not authenticated.
+                $login_error = 'Nope, try again!';
+            }
+            break;
+        // Logging out.
+        case 'logout':
+            session_unset();
+            session_destroy();
+
+            // Redirect to dashboard on logout.
+            header('Location: ./');
+            exit();
+            break;
+
+        // Fogot password.
+        case 'forgot':
+            // The verification file.
+            $verification_file = "./verify.php";
+
+            // If verified, allow a password reset.
+            if (!isset($_GET["verify"])) {
+                $code = sha1(md5(rand()));
+
+                $verify_file_contents[] = "<?php";
+                $verify_file_contents[] = "\$verification_code = \"" . $code . "\";";
+                file_put_contents($verification_file, implode("\n", $verify_file_contents));
+
+                $recovery_url = sprintf("%s/index.php?action=forgot&verify=%s,", $blog_url, $code);
+                $message      = sprintf("To reset your password go to: %s", $recovery_url);
+
+                $headers[] = "From: " . $blog_email;
+                $headers[] = "Reply-To: " . $blog_email;
+                $headers[] = "X-Mailer: PHP/" . phpversion();
+
+                mail($blog_email, $blog_title . " - Recover your password", $message, implode("\r\n", $headers));
+                $login_error = "Details on how to recover your password have been sent to your email.";
+
+            // If not verified, display a verification error.
+            } else {
+                include($verification_file);
+
+                if ($_GET["verify"] == $verification_code) {
+                    $_SESSION["user"] = true;
+                    unlink($verification_file);
+                } else {
+                    $login_error = "That's not the correct recovery code!";
+                }
+            }
+            break;
+        // Invalidation
+        case 'invalidate':
+            if (!$_SESSION['user']) {
+                $login_error = 'Nope, try again!';
+            } else {
+                if (!file_exists($upload_dir . 'cache/')) {
+                    return;
+                }
+
+                $files = glob($upload_dir . 'cache/*');
+                foreach ($files as $file) {
+                    if (is_file($file))
+                        unlink($file);
+                }
+            }
+            header('Location: ' . './');
+            break;
+    }
+    define('LOGIN_ERROR', $login_error);
+}
 
 /*-----------------------------------------------------------------------------------*/
-/* Get Settings & Functions
+/* Post action
 /*-----------------------------------------------------------------------------------*/
 
-include('./core/settings.php');
-include('./core/functions.php');
+if(isset($_POST) && !empty($_POST)) {
+    require_once "core/save.php";
+}
+
 
 /*-----------------------------------------------------------------------------------*/
 /* Reading File Names
 /*-----------------------------------------------------------------------------------*/
 
 $category = NULL;
-if (empty($_GET['filename'])) {
-    $filename = NULL;
-} else if($_GET['filename'] == 'rss' || $_GET['filename'] == 'atom') {
-    $filename = $_GET['filename'];
-}  else {
+$filename = NULL;
 
+if(isset($_GET['filename']) && ($_GET['filename'] == 'rss' || $_GET['filename'] == 'atom')) {
+    $filename = $_GET['filename'];
+} else if(isset($_GET['filename']) && !empty($_GET['filename'])) {
     //Filename can be /some/blog/post-filename.md We should get the last part only
-    $filename = explode('/',$_GET['filename']);
+    $filename = explode('/', $_GET['filename']);
 
     // File name could be the name of a category
-    if($filename[count($filename) - 2] == "category") {
+    if(count($filename) >= 2 && $filename[count($filename) - 2] == "category") {
         $category = $filename[count($filename) - 1];
         $filename = null;
     } else {
-
         // Individual Post
         $filename = POSTS_DIR . $filename[count($filename) - 1] . FILE_EXT;
     }
@@ -44,118 +140,92 @@ if (empty($_GET['filename'])) {
 /* The Home Page (All Posts)
 /*-----------------------------------------------------------------------------------*/
 
-if ($filename==NULL) {
-
+if ($filename == NULL) {
     $page = (isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1) ? $_GET['page'] : 1;
-    $offset = ($page == 1) ? 0 : ($page - 1) * $posts_per_page;
+    $offset = ($page - 1) * POSTS_PER_PAGE;
 
-    //Index page cache file name, will be used if index_cache = "on"
-
+    // Index page cache file name, will be used if index_cache = "on"
     $cachefile = CACHE_DIR . ($category ? $category : "index") .$page. '.html';
 
-    //If index cache file exists, serve it directly wihout getting all posts
-    if (file_exists($cachefile) && $index_cache != 'off') {
-
-        // Get the cached post.
-        include $cachefile;
-        exit;
-
-    // If there is a file for the selected permalink, display and cache the post.
+    // If index cache file exists, serve it directly wihout getting all posts
+    if(!isset($_SESSION['user'])) {
+        if (file_exists($cachefile) && CACHE_NOTE != 'off') {
+            include $cachefile;
+            exit;
+        }
     }
 
-    if($category) {
+    if($category)
         $all_posts = get_posts_for_category($category);
-    } else {
+    else
         $all_posts = get_all_posts();
-    }
 
-    $pagination = ($pagination_on_off != "off") ? get_pagination($page,round(count($all_posts)/ $posts_per_page)) : "";
-    define('PAGINATION', $pagination);
-    $posts = ($pagination_on_off != "off") ? array_slice($all_posts,$offset,($posts_per_page > 0) ? $posts_per_page : null) : $all_posts;
+    $total = round(count($all_posts) / POSTS_PER_PAGE);
+    $posts = (PAGINATION_ON_OFF != "off")  ? array_slice($all_posts, $offset, (POSTS_PER_PAGE > 0) ? POSTS_PER_PAGE : null) : $all_posts;
 
     if($posts) {
         ob_start();
         $content = '';
         foreach($posts as $post) {
-
             // Get the post status.
             $post_status = $post['post_status'];
             if ($post_status == 'draft') continue;
 
-            // Get the post title.
-            $post_title = str_replace(array("\n",'<h1>','</h1>'), '', $post['post_title']);
-
-            // Get the post author.
-            $post_author = $post['post_author'];
-
-            // Get the post author twitter id.
-            $post_author_twitter = $post['post_author_twitter'];
-
-            // Get the published ISO date.
-            $published_iso_date = $post['post_date'];
-
-            // Generate the published date.
-            $published_date = date_format(date_create($published_iso_date), $date_format);
-
-            // Get the post category.
-            $post_category = $post['post_category'];
-
-            // Get the post category link.
-            $post_category_link = $blog_url.'category/'.urlencode(trim(strtolower($post_category)));
-
-            // Get the post content
-            $post_content = $post['post_content'];
-
-            // Get the post intro.
-            $post_intro = $post['post_intro'];
-
             // Get the post link.
-            if ($category) {
-                $post_link = trim(strtolower($post_category)).'/'.str_replace(FILE_EXT, '', $post['fname']);
-            } else {
-                $post_link = $blog_url.str_replace(FILE_EXT, '', $post['fname']);
-            }
+            if ($category)
+                $post_link = trim(strtolower($post_category)) . '/' . str_replace(FILE_EXT, '', $post['fname']);
+            else
+                $post_link = BLOG_URL . str_replace(FILE_EXT, '', $post['fname']);
 
-            $post_name = $post['fname'];
+            // Get the post title.
+            $post_title             = str_replace(array("\n",'<h1>','</h1>'), '', $post['post_title']);
+            $post_author            = $post['post_author'];
+            $post_author_twitter    = $post['post_author_twitter'];
+            $published_iso_date     = $post['post_date'];
+            $published_date         = date_format(date_create($published_iso_date), $date_format);
+            $post_category          = $post['post_category'];
+            $post_category_link     = BLOG_URL.'category/' . urlencode(trim(strtolower($post_category)));
+            $post_content           = $post['post_content'];
+            $post_intro             = $post['post_intro'];
+            $post_name              = $post['fname'];
 
             // Get the post image url.
             $image = str_replace(array(FILE_EXT), '', POSTS_DIR.$post['fname']).'.jpg';
 
-            if (file_exists($image)) {
-                $post_image = $blog_url.str_replace(array(FILE_EXT, './'), '', POSTS_DIR . $post['fname']).'.jpg';
-            } else {
+            if (file_exists($image))
+                $post_image = BLOG_URL.str_replace(array(FILE_EXT, './'), '', POSTS_DIR . $post['fname']).'.jpg';
+            else
                 $post_image = get_twitter_profile_img($post_author_twitter);
-            }
 
             // Get the milti-post template file.
             include $posts_file;
         }
+
         echo $content;
         $content = ob_get_contents();
 
         // Get the site title
-        $page_title = $blog_title;
-
+        $page_title = BLOG_TITLE;
         $blog_image = 'https://api.twitter.com/1/users/profile_image?screen_name='.$blog_twitter.'&size=bigger';
 
         // Get the page description and author meta.
         $get_page_meta[] = '<meta name="description" content="' . $meta_description . '">';
-        $get_page_meta[] = '<meta name="author" content="' . $blog_title . '">';
+        $get_page_meta[] = '<meta name="author" content="' . BLOG_TITLE . '">';
 
         // Get the Twitter card.
         $get_page_meta[] = '<meta name="twitter:card" content="summary">';
         $get_page_meta[] = '<meta name="twitter:site" content="' . $blog_twitter . '">';
-        $get_page_meta[] = '<meta name="twitter:title" content="' . $blog_title . '">';
+        $get_page_meta[] = '<meta name="twitter:title" content="' . BLOG_TITLE . '">';
         $get_page_meta[] = '<meta name="twitter:description" content="' . $meta_description . '">';
         $get_page_meta[] = '<meta name="twitter:creator" content="' . $blog_twitter . '">';
         $get_page_meta[] = '<meta name="twitter:image:src" content="' . $blog_image . '">';
-        $get_page_meta[] = '<meta name="twitter:domain" content="' . $blog_url . '">';
+        $get_page_meta[] = '<meta name="twitter:domain" content="' . BLOG_URL . '">';
 
         // Get the Open Graph tags.
         $get_page_meta[] = '<meta property="og:type" content="website">';
-        $get_page_meta[] = '<meta property="og:title" content="' . $blog_title . '">';
-        $get_page_meta[] = '<meta property="og:site_name" content="' . $blog_title . '">';
-        $get_page_meta[] = '<meta property="og:url" content="' .$blog_url . '">';
+        $get_page_meta[] = '<meta property="og:title" content="' . BLOG_TITLE . '">';
+        $get_page_meta[] = '<meta property="og:site_name" content="' . BLOG_TITLE . '">';
+        $get_page_meta[] = '<meta property="og:url" content="' .BLOG_URL . '">';
         $get_page_meta[] = '<meta property="og:description" content="' . $meta_description . '">';
         $get_page_meta[] = '<meta property="og:image" content="' . $blog_image . '">';
 
@@ -179,62 +249,72 @@ if ($filename==NULL) {
         //Flush the buffer so that we dont get the page 2x times
         ob_end_clean();
     }
-        ob_start();
 
-        // Get the index template file.
+    ob_start();
+
+    // Get the index template file.
+    if(isset($index_file))
         include_once $index_file;
 
-        //Now that we have the whole index page generated, put it in cache folder
-        if ($index_cache != 'off') {
-            $fp = fopen($cachefile, 'w');
-            fwrite($fp, ob_get_contents());
-            fclose($fp);
-        }
+    //Now that we have the whole index page generated, put it in cache folder
+    if (CACHE_NOTE != 'off') {
+        $fp = fopen($cachefile, 'w');
+        fwrite($fp, ob_get_contents());
+        fclose($fp);
     }
+}
 
 /*-----------------------------------------------------------------------------------*/
 /* RSS Feed
 /*-----------------------------------------------------------------------------------*/
 
 else if ($filename == 'rss' || $filename == 'atom') {
-    ($filename=='rss') ? $feed = new FeedWriter(RSS2) : $feed = new FeedWriter(ATOM);
+    if($filename == 'rss')
+        $feed = new FeedWriter(RSS2);
+    else
+        $feed = new FeedWriter(ATOM);
 
-    $feed->setTitle($blog_title);
-    $feed->setLink($blog_url);
+    $feed->setTitle(BLOG_TITLE);
+    $feed->setLink(BLOG_URL);
 
-    if($filename=='rss') {
+    if($filename == 'rss') {
         $feed->setDescription($meta_description);
-        $feed->setChannelElement('language', $language);
+        $feed->setChannelElement('language', LANGUAGE_RSS);
         $feed->setChannelElement('pubDate', date(DATE_RSS, time()));
     } else {
-        $feed->setChannelElement('author', $blog_title.' - ' . $blog_email);
+        $feed->setChannelElement('author', BLOG_TITLE.' - ' . BLOG_EMAIL);
         $feed->setChannelElement('updated', date(DATE_RSS, time()));
     }
 
     $posts = get_all_posts();
 
     if($posts) {
-        $c=0;
+        $c = 0;
         foreach($posts as $post) {
-            if($c<$feed_max_items) {
+            if($c < $feed_max_items) {
                 $item = $feed->createNewItem();
 
                 // Remove HTML from the RSS feed.
                 $item->setTitle(substr($post['post_title'], 4, -6));
-                $item->setLink(rtrim($blog_url, '/').'/'.str_replace(FILE_EXT, '', $post['fname']));
+                $item->setLink(rtrim(BLOG_URL, '/') . '/' . str_replace(FILE_EXT, '', $post['fname']));
                 $item->setDate($post['post_date']);
 
                 // Remove Meta from the RSS feed.
-				$remove_metadata_from = file(rtrim(POSTS_DIR, '/').'/'.$post['fname']);
+                $remove_metadata_from = file(rtrim(POSTS_DIR, '/') . '/' . $post['fname']);
 
-                if($filename=='rss') {
-                    $item->addElement('author', str_replace('-', '', $remove_metadata_from[1]).' - ' . $blog_email);
-                    $item->addElement('guid', rtrim($blog_url, '/').'/'.str_replace(FILE_EXT, '', $post['fname']));
+                if($filename == 'rss') {
+                    $item->addElement('author', str_replace('-', '', $remove_metadata_from[1]) . ' - ' . BLOG_EMAIL);
+                    $item->addElement('guid', rtrim(BLOG_URL, '/') . '/' . str_replace(FILE_EXT, '', $post['fname']));
                 }
 
-				// Remove the metadata from the RSS feed.
-				unset($remove_metadata_from[0], $remove_metadata_from[1], $remove_metadata_from[2], $remove_metadata_from[3], $remove_metadata_from[4], $remove_metadata_from[5]);
-				$remove_metadata_from = array_values($remove_metadata_from);
+                // Remove the metadata from the RSS feed.
+                unset($remove_metadata_from[0],
+                      $remove_metadata_from[1],
+                      $remove_metadata_from[2],
+                      $remove_metadata_from[3],
+                      $remove_metadata_from[4],
+                      $remove_metadata_from[5]);
+                $remove_metadata_from = array_values($remove_metadata_from);
 
                 $item->setDescription(Markdown(implode($remove_metadata_from)));
 
@@ -243,6 +323,7 @@ else if ($filename == 'rss' || $filename == 'atom') {
             }
         }
     }
+
     $feed->genarateFeed();
 }
 
@@ -254,7 +335,9 @@ else {
     ob_start();
 
     // Define the post file.
-    $fcontents = file($filename);
+    if(file_exists($filename))
+        $fcontents = file($filename);
+
     $slug_array = explode("/", $filename);
     $slug_len = count($slug_array);
 
@@ -289,7 +372,7 @@ else {
         include_once $index_file;
 
         // Cache the post on if caching is turned on.
-        if ($post_cache != 'off')
+        if (CACHE_POST != 'off')
         {
             $fp = fopen($cachefile, 'w');
             fwrite($fp, ob_get_contents());
@@ -309,7 +392,6 @@ else {
 
     // If there is a file for the selected permalink, display and cache the post.
     } else {
-
         // Get the post title.
         $post_title = Markdown($fcontents[0]);
         $post_title = str_replace(array("\n",'<h1>','</h1>'), '', $post_title);
@@ -336,10 +418,10 @@ else {
         $post_status = str_replace(array("\n", '- '), '', $fcontents[5]);
 
         // Get the post category link.
-        $post_category_link = $blog_url.'category/'.urlencode(trim(strtolower($post_category)));
+        $post_category_link = BLOG_URL.'category/'.urlencode(trim(strtolower($post_category)));
 
         // Get the post link.
-        $post_link = $blog_url.str_replace(array(FILE_EXT, POSTS_DIR), '', $filename);
+        $post_link = BLOG_URL.str_replace(array(FILE_EXT, POSTS_DIR), '', $filename);
 
         $post_name = $filename;
 
@@ -347,7 +429,7 @@ else {
         $image = str_replace(array(FILE_EXT), '', $filename).'.jpg';
 
         if (file_exists($image)) {
-            $post_image = $blog_url.str_replace(array(FILE_EXT, './'), '', $filename).'.jpg';
+            $post_image = BLOG_URL.str_replace(array(FILE_EXT, './'), '', $filename).'.jpg';
         } else {
             $post_image = get_twitter_profile_img($post_author_twitter);
         }
@@ -406,98 +488,11 @@ else {
         include_once $index_file;
 
         // Cache the post on if caching is turned on.
-        if ($post_cache != 'off')
+        if (CACHE_POST != 'off')
         {
             $fp = fopen($cachefile, 'w');
             fwrite($fp, ob_get_contents());
             fclose($fp);
         }
     }
-}
-
-/*-----------------------------------------------------------------------------------*/
-/* Run Setup if No Config
-/*-----------------------------------------------------------------------------------*/
-
-} else {
-    // Get the components of the current url.
-    $protocol = @( $_SERVER["HTTPS"] != 'on') ? 'http://' : 'https://';
-    $domain = $_SERVER["SERVER_NAME"];
-    $port = $_SERVER["SERVER_PORT"];
-    $path = $_SERVER["REQUEST_URI"];
-
-    // Check if running on alternate port.
-    if ($protocol == "https://") {
-        if ($port == 443)
-            $url = $protocol . $domain;
-        else
-            $url = $protocol . $domain . ":" . $port;
-    } elseif ($protocol == "http://") {
-        if ($port == 80)
-            $url = $protocol . $domain;
-        else
-            $url = $protocol . $domain . ":" . $port;
-    }
-
-    $url .= $path;
-
-    // Check if the install directory is writable.
-    $is_writable = (TRUE == is_writable(dirname(__FILE__) . '/'));
-    ?>
-
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <meta charset="utf-8" />
-            <title>Let's Get Started</title>
-            <link rel="stylesheet" href="templates/base/base.css" />
-            <link rel="shortcut icon" href="templates/base/favicon.ico">
-        </head>
-
-        <body class="dp-install">
-            <form method="POST" action="./core/save.php">
-                <a class="dp-icon-dropplets" href="http://dropplets.com" target="_blank"></a>
-
-                <h2>Install Dropplets</h2>
-                <p>Welcome to an easier way to blog.</p>
-
-                <input type="password" name="password" id="password" required placeholder="Choose Your Password">
-                <input type="password" name="password-confirmation" id="password-confirmation" required placeholder="Confirm Your Password" onblur="confirmPass()">
-
-                <input hidden type="text" name="blog_email" id="blog_email" value="hi@dropplets.com">
-                <input hidden type="text" name="blog_twitter" id="blog_twitter" value="dropplets">
-                <input hidden type="text" name="blog_google" id="blog_google" value="">
-                <input hidden type="text" name="blog_flattr" id="blog_flattr" value="">
-                <input hidden type="text" name="blog_url" id="blog_url" value="<?php echo($url) ?><?php if ($url == $domain) { ?>/<?php } ?>">
-                <input hidden type="text" name="template" id="template" value="simple">
-                <input hidden type="text" name="blog_title" id="blog_title" value="Welcome to Dropplets">
-                <input hidden type="text" name="blog_language" id="blog_language" value="en_US">
-                <textarea hidden name="meta_description" id="meta_description"></textarea>
-                <input hidden type="text" name="intro_title" id="intro_title" value="Welcome to Dropplets">
-                <textarea hidden name="intro_text" id="intro_text">In a flooded selection of overly complex solutions, Dropplets has been created in order to deliver a much needed alternative. There is something to be said about true simplicity in the design, development and management of a blog. By eliminating all of the unnecessary elements found in typical solutions, Dropplets can focus on pure design, typography and usability. Welcome to an easier way to blog.</textarea>
-
-    		    <button type="submit" name="submit" value="submit">k</button>
-    		</form>
-
-            <?php if (!$is_writable) { ?>
-                <p style="color:red;">It seems that your config folder is not writable, please add the necessary permissions.</p>
-            <?php } ?>
-
-            <script>
-            	function confirmPass() {
-            		var pass = document.getElementById("password").value
-            		var confPass = document.getElementById("password-confirmation").value
-            		if(pass != confPass) {
-            			alert('Your passwords do not match!');
-            		}
-            	}
-            </script>
-        </body>
-    </html>
-<?php
-
-/*-----------------------------------------------------------------------------------*/
-/* That's All There is to It
-/*-----------------------------------------------------------------------------------*/
-
 }

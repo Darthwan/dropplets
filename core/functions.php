@@ -1,128 +1,65 @@
 <?php
 
-/*-----------------------------------------------------------------------------------*/
-/* Include 3rd Party Functions
-/*-----------------------------------------------------------------------------------*/
-
-include('./core/includes/feedwriter.php');
-include('./core/includes/markdown.php');
-include('./core/includes/phpass.php');
-include('./core/includes/actions.php');
+include 'includes/feedwriter.php';
+include 'includes/markdown.php';
+include 'includes/phpass.php';
+include 'includes/actions.php';
 
 /*-----------------------------------------------------------------------------------*/
-/* User Machine
+/* Modifying string
 /*-----------------------------------------------------------------------------------*/
 
-// Password hashing via phpass.
-$hasher  = new PasswordHash(8,FALSE);
-
-if (isset($_GET['action']))
-{
-    $action = $_GET['action'];
-    switch ($action)
-    {
-
-        // Logging in.
-        case 'login':
-            if ((isset($_POST['password'])) && $hasher->CheckPassword($_POST['password'], $password)) {
-                $_SESSION['user'] = true;
-
-                // Redirect if authenticated.
-                header('Location: ' . './');
-            } else {
-
-                // Display error if not authenticated.
-                $login_error = 'Nope, try again!';
-            }
-            break;
-
-        // Logging out.
-        case 'logout':
-            session_unset();
-            session_destroy();
-
-            // Redirect to dashboard on logout.
-            header('Location: ' . './');
-            break;
-
-        // Fogot password.
-        case 'forgot':
-
-            // The verification file.
-            $verification_file = "./verify.php";
-
-            // If verified, allow a password reset.
-            if (!isset($_GET["verify"])) {
-
-                $code = sha1(md5(rand()));
-
-                $verify_file_contents[] = "<?php";
-                $verify_file_contents[] = "\$verification_code = \"" . $code . "\";";
-                file_put_contents($verification_file, implode("\n", $verify_file_contents));
-
-                $recovery_url = sprintf("%s/index.php?action=forgot&verify=%s,", $blog_url, $code);
-                $message      = sprintf("To reset your password go to: %s", $recovery_url);
-
-                $headers[] = "From: " . $blog_email;
-                $headers[] = "Reply-To: " . $blog_email;
-                $headers[] = "X-Mailer: PHP/" . phpversion();
-
-                mail($blog_email, $blog_title . " - Recover your password", $message, implode("\r\n", $headers));
-                $login_error = "Details on how to recover your password have been sent to your email.";
-
-            // If not verified, display a verification error.
-            } else {
-
-                include($verification_file);
-
-                if ($_GET["verify"] == $verification_code) {
-                    $_SESSION["user"] = true;
-                    unlink($verification_file);
-                } else {
-                    $login_error = "That's not the correct recovery code!";
-                }
-            }
-            break;
-
-        // Invalidation
-        case 'invalidate':
-            if (!$_SESSION['user']) {
-                $login_error = 'Nope, try again!';
-            } else {
-                if (!file_exists($upload_dir . 'cache/')) {
-                    return;
-                }
-
-                $files = glob($upload_dir . 'cache/*');
-
-                foreach ($files as $file) {
-                    if (is_file($file))
-                        unlink($file);
-                }
-            }
-
-            header('Location: ' . './');
-            break;
-    }
-
+function settingsFormat($name, $value) {
+    return sprintf("\$%s = \"%s\";", $name, $value);
 }
 
-define('LOGIN_ERROR', $login_error);
+function settingsFormatPass($name, $value) {
+    return sprintf("\$%s = '%s';", $name, $value);
+}
+
+function secure($str) {
+    return htmlspecialchars($str);
+}
+
+/*-----------------------------------------------------------------------------------*/
+/* Get URL blog
+/*-----------------------------------------------------------------------------------*/
+
+function getUrlBlog() {
+    // Get the components of the current url.
+    $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'on') ? 'https://' : 'http://';
+    $domain   = $_SERVER['SERVER_NAME'];
+    $port     = $_SERVER['SERVER_PORT'];
+    $path     = $_SERVER['REQUEST_URI'];
+
+    // Check if running on alternate port.
+    if ($protocol == "https://") {
+        if ($port == 443)
+            $url = $protocol . $domain;
+        else
+            $url = $protocol . $domain . ":" . $port;
+    } elseif ($protocol == "http://") {
+        if ($port == 80)
+            $url = $protocol . $domain;
+        else
+            $url = $protocol . $domain . ":" . $port;
+    }
+
+    return array('url' => $url . $path, 'domain' => $domain);
+}
 
 /*-----------------------------------------------------------------------------------*/
 /* Get All Posts Function
 /*-----------------------------------------------------------------------------------*/
 
 function get_all_posts($options = array()) {
-    global $dropplets;
-
     if($handle = opendir(POSTS_DIR)) {
-
         $files = array();
         $filetimes = array();
+        $post_dates = array();
 
         while (false !== ($entry = readdir($handle))) {
-            if(substr(strrchr($entry,'.'),1)==ltrim(FILE_EXT, '.')) {
+            if(substr(strrchr($entry, '.'), 1) == ltrim(FILE_EXT, '.')) {
 
                 // Define the post file.
                 $fcontents = file(POSTS_DIR.$entry);
@@ -143,7 +80,7 @@ function get_all_posts($options = array()) {
                 $post_category = str_replace(array("\n", '-'), '', $fcontents[4]);
 
                 // Early return if we only want posts from a certain category
-                if($options["category"] && $options["category"] != trim(strtolower($post_category))) {
+                if(isset($options['category']) && $options["category"] && $options["category"] != trim(strtolower($post_category))) {
                     continue;
                 }
 
@@ -151,13 +88,25 @@ function get_all_posts($options = array()) {
                 $post_status = str_replace(array("\n", '- '), '', $fcontents[5]);
 
                 // Define the post content
-                $post_content = Markdown(join('', array_slice($fcontents, 6, $fcontents.length -1)));
+                $post_content = Markdown(join('', array_slice($fcontents, 6, count($fcontents) - 1)));
 
                 // Define the post intro.
                 $post_intro = Markdown($fcontents[7]);
 
                 // Pull everything together for the loop.
-                $files[] = array('fname' => $entry, 'post_title' => $post_title, 'post_author' => $post_author, 'post_author_twitter' => $post_author_twitter, 'post_date' => $post_date, 'post_category' => $post_category, 'post_status' => $post_status, 'post_intro' => $post_intro, 'post_content' => $post_content, 'post_name' => $entry);
+                $files[] = array(
+                    'fname' => $entry,
+                    'post_title' => $post_title,
+                    'post_author' => $post_author,
+                    'post_author_twitter' => $post_author_twitter,
+                    'post_date' => $post_date,
+                    'post_category' => $post_category,
+                    'post_status' => $post_status,
+                    'post_intro' => $post_intro,
+                    'post_content' => $post_content,
+                    'post_name' => $entry
+                );
+
                 $post_dates[] = $post_date;
                 $post_titles[] = $post_title;
                 $post_authors[] = $post_author;
@@ -169,6 +118,7 @@ function get_all_posts($options = array()) {
                 $post_name[] = $entry;
             }
         }
+
         array_multisort($post_dates, SORT_DESC, $files);
         return $files;
 
@@ -186,26 +136,6 @@ function get_posts_for_category($category) {
     return get_all_posts(array("category" => $category));
 }
 
-/*-----------------------------------------------------------------------------------*/
-/* Post Pagination
-/*-----------------------------------------------------------------------------------*/
-
-function get_pagination($page,$total) {
-
-    $string = '';
-    $string .= "<ul style=\"list-style:none; width:400px; margin:15px auto;\">";
-
-    for ($i = 1; $i<=$total;$i++) {
-        if ($i == $page) {
-            $string .= "<li style='display: inline-block; margin:5px;' class=\"active\"><a class=\"button\" href='#'>".$i."</a></li>";
-        } else {
-            $string .=  "<li style='display: inline-block; margin:5px;'><a class=\"button\" href=\"?page=".$i."\">".$i."</a></li>";
-        }
-    }
-
-    $string .= "</ul>";
-    return $string;
-}
 
 /*-----------------------------------------------------------------------------------*/
 /* Get Installed Templates
@@ -232,7 +162,7 @@ function get_installed_templates() {
             ?>
 <li<?php if($active_template == $template_dir_name) { ?> class="active"<?php } ?>>
 <div class="shadow"></div>
-<form method="POST" action="./core/save.php">
+<form method="post">
 <img src="<?php echo $template_screenshot; ?>">
 <input type="hidden" name="template" id="template" required readonly value="<?php echo $template_dir_name ?>">
 <button class="<?php if ($active_template == $template_dir_name) :?>active<?php else : ?>activate<?php endif; ?>" type="submit" name="submit" value="submit"><?php if ($active_template == $template_dir_name) :?>t<?php else : ?>k<?php endif; ?></button>
@@ -248,22 +178,23 @@ function get_installed_templates() {
 /* If is Home (Could use "is_single", "is_category" as well.)
 /*-----------------------------------------------------------------------------------*/
 
-$homepage = BLOG_URL;
-
-// Get the current page.
-$currentpage  = @( $_SERVER["HTTPS"] != 'on' ) ? 'http://'.$_SERVER["SERVER_NAME"] : 'https://'.$_SERVER["SERVER_NAME"];
-$currentpage .= $_SERVER["REQUEST_URI"];
-
 // If is home.
-$is_home = ($homepage==$currentpage);
-define('IS_HOME', $is_home);
+function get_home() {
+    $homepage = BLOG_URL;
+    $tmp = explode('?', $_SERVER["REQUEST_URI"]);
+
+    // Get the current page.
+    $currentpage = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'on') ? 'https://' . $_SERVER["SERVER_NAME"] : 'http://' . $_SERVER["SERVER_NAME"];
+    $currentpage .= $tmp[0];
+
+    return $homepage == $currentpage;
+}
 
 /*-----------------------------------------------------------------------------------*/
 /* Get Profile Image
 /*-----------------------------------------------------------------------------------*/
 
 function get_twitter_profile_img($username) {
-
 	// Get the cached profile image.
 	$profile_image = BLOG_URL . 'cache/'.$username.'.jpg';
     $test = './cache/'.$username.'.jpg';
@@ -277,6 +208,22 @@ function get_twitter_profile_img($username) {
 
 	// Return the image URL.
 	return $profile_image;
+}
+
+function get_gravatar_profile_img($username) {
+    // Get the cached profile image.
+    $profile_image = BLOG_URL . 'cache/'.$username.'.jpg';
+    $test = './cache/'.$username.'.jpg';
+
+    // Cache the image if it doesn't already exist.
+    if (!file_exists($test)) {
+        $image_url = 'http://www.gravatar.com/avatar/' . md5(trim(strtolower($username))) . '?s=200&r=pg&d=identicon&f=y';
+        $image = file_get_contents($image_url);
+        file_put_contents('./cache/'.$username.'.jpg', $image);
+    }
+
+    // Return the image URL.
+    return $profile_image;
 }
 
 /*-----------------------------------------------------------------------------------*/

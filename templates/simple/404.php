@@ -6,11 +6,11 @@
         </div>
 
         <div class="three-quarters post">
-            <h1><?php echo($error_title); ?></h1>
-            <p><?php echo($error_text); ?></p>
+            <h1><?php echo $error_title; ?></h1>
+            <p><?php echo $error_text; ?></p>
 
             <ul class="actions">
-                <li><a class="button" href="<?php echo($blog_url); ?>">More Articles</a></li>
+                <li><a class="button" href="<?php echo $blog_url; ?>">Back home!</a></li>
             </ul>
         </div>
     </div>

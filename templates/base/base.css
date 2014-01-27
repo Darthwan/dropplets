@@ -56,7 +56,7 @@ body.dp-install {
     text-rendering: optimizeLegibility;
 }
 
-body.dp-install .dp-icon-dropplets {
+body.dp-install .dp-icon-dropplets-logo {
     background-color: #1096d7;
     font-family: "dropplets";
     font-size: 110px;
@@ -159,7 +159,7 @@ body.dp-install form button:hover {
 /* Icon Classes
 *********************************************************************************************/
 
-.dp-icon-dropplets, .dp-icon-key, .dp-icon-settings, .dp-icon-templates, .dp-icon-close, .dp-icon-checkmark, .dp-icon-preview, .dp-icon-question, .dp-icon-twitter, .dp-icon-edit, .dp-icon-grid {
+.dp-icon-dropplets, .dp-icon-dropplets-logo, .dp-icon-key, .dp-icon-settings, .dp-icon-templates, .dp-icon-close, .dp-icon-checkmark, .dp-icon-preview, .dp-icon-question, .dp-icon-twitter, .dp-icon-edit, .dp-icon-grid {
 	font-family: 'dropplets';
 	speak: none;
 	font-style: normal;
@@ -170,6 +170,9 @@ body.dp-install form button:hover {
 }
 .dp-icon-dropplets:before {
 	content: "\74";
+}
+.dp-icon-dropplets-logo:before {
+    content: "\64";
 }
 .dp-icon-key:before {
 	content: "\6c";
