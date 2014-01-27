@@ -171,7 +171,7 @@ if ($filename == NULL) {
         $content = '';
         foreach($posts as $post) {
             // Get the post status.
-            if ($secure(trim(strtolower($post['post_status']))) == 'draft') continue;
+            if (secure(trim(strtolower($post['post_status']))) == 'draft') continue;
 
             // Get the post link.
             if ($category)
