@@ -8,6 +8,10 @@
 // @TODO : scheduled publishing (see more on https://github.com/Circa75/dropplets/pull/300)
 // @TODO : language support
 
+ini_set('session.use_cookies', 1);          // Use cookies to store session.
+ini_set('session.use_only_cookies', 1);     // Force cookies for session (phpsessionID forbidden in URL)
+ini_set('session.use_trans_sid', false);    // Prevent php to use sessionID in URL if cookies are disabled.
+
 session_start();
 
 require_once 'core/class.rain.tpl.php';
@@ -121,6 +125,7 @@ if(isset($_POST) && !empty($_POST)) {
 /*-----------------------------------------------------------------------------------*/
 
 $category = NULL;
+$tag      = NULL;
 $filename = NULL;
 
 if(isset($_GET['filename']) && ($_GET['filename'] == 'rss' || $_GET['filename'] == 'atom')) {
@@ -132,7 +137,11 @@ if(isset($_GET['filename']) && ($_GET['filename'] == 'rss' || $_GET['filename'] 
     // File name could be the name of a category
     if(count($filename) >= 2 && $filename[count($filename) - 2] == "category") {
         $category = $filename[count($filename) - 1];
-        $filename = null;
+        $filename = NULL;
+    } else if(count($filename) >= 2 && $filename[count($filename) - 2] == "tag") {
+        // File name could be the name of a tag
+        $tag = $filename[count($filename) - 1];
+        $filename = NULL;
     } else {
         // Individual Post
         $filename = POSTS_DIR . $filename[count($filename) - 1] . FILE_EXT;
@@ -148,7 +157,8 @@ if ($filename == NULL) {
     $offset = ($page - 1) * POSTS_PER_PAGE;
 
     // Index page cache file name, will be used if index_cache = "on"
-    $cachefile = CACHE_DIR . ($category ? $category : "index") .$page. '.html';
+    $cachefile = CACHE_DIR . ($category ? $category : "index") . $page . '.html';
+    // @TODO : même chose avec les tags ?
 
     // If index cache file exists, serve it directly wihout getting all posts
     if(!isset($_SESSION['user'])) {
@@ -160,6 +170,8 @@ if ($filename == NULL) {
 
     if($category)
         $all_posts = get_posts_for_category($category);
+    elseif($tag)
+        $all_posts = get_posts_for_tag($tag);
     else
         $all_posts = get_all_posts();
 
@@ -173,9 +185,18 @@ if ($filename == NULL) {
             // Get the post status.
             if (secure(trim(strtolower($post['post_status']))) == 'draft') continue;
 
+            // Get the posts tags.
+            $post_tags = array();
+            foreach($post['post_tags'] as $tag) {
+                $post_tags[] = array(
+                    'name' => trim($tag),
+                    'url'  => BLOG_URL . 'tag/' . urlencode(trim(strtolower($tag))),
+                );
+            }
+
             // Get the post link.
             if ($category)
-                $post_link = trim(strtolower($post_category)) . '/' . str_replace(FILE_EXT, '', $post['fname']);
+                $post_link = trim(strtolower($post['post_category'])) . '/' . str_replace(FILE_EXT, '', $post['fname']);
             else
                 $post_link = BLOG_URL . str_replace(FILE_EXT, '', $post['fname']);
 
@@ -186,7 +207,8 @@ if ($filename == NULL) {
             $published_iso_date     = $post['post_date'];
             $published_date         = date_format(date_create($published_iso_date), $date_format);
             $post_category          = $post['post_category'];
-            $post_category_link     = BLOG_URL.'category/' . urlencode(trim(strtolower($post_category)));
+            $post_category_link     = BLOG_URL . 'category/' . urlencode(trim(strtolower($post_category)));
+            $post_status            = $post['post_status'];
             $post_content           = $post['post_content'];
             $post_intro             = $post['post_intro'];
             $post_name              = $post['fname'];
@@ -399,7 +421,7 @@ else {
         $post_title = str_replace(array("\n",'<h1>','</h1>'), '', $post_title);
 
         // Get the post intro.
-        $post_intro = htmlspecialchars($fcontents[7]);
+        $post_intro = htmlspecialchars($fcontents[8]);
 
         // Get the post author.
         $post_author = str_replace(array("\n", '-'), '', $fcontents[1]);
@@ -416,11 +438,21 @@ else {
         // Get the post category.
         $post_category = str_replace(array("\n", '-'), '', $fcontents[4]);
 
+        // Get the post category link.
+        $post_category_link = BLOG_URL . 'category/' . urlencode(trim(strtolower($post_category)));
+
+        // Get the post tags.
+        $temp_tags = explode('|', trim(str_replace(array("\n", '-'), '', $fcontents[6])));
+        $post_tags = array();
+        foreach($temp_tags as $tag) {
+            $post_tags[] = array(
+                'name' => trim($tag),
+                'url'  => BLOG_URL . 'tag/' . urlencode(trim(strtolower($tag))),
+            );
+        }
+
         // Get the post status.
         $post_status = str_replace(array("\n", '- '), '', $fcontents[5]);
-
-        // Get the post category link.
-        $post_category_link = BLOG_URL.'category/'.urlencode(trim(strtolower($post_category)));
 
         // Get the post link.
         $post_link = BLOG_URL.str_replace(array(FILE_EXT, POSTS_DIR), '', $filename);
@@ -437,17 +469,8 @@ else {
         }
 
         // Get the post content
-        $file_array = file($filename);
-
-        unset($file_array[0]);
-        unset($file_array[1]);
-        unset($file_array[2]);
-        unset($file_array[3]);
-        unset($file_array[4]);
-        unset($file_array[5]);
-        unset($file_array[6]);
-
-        $post_content = Markdown(implode("", $file_array));
+        $file_array = array_slice(file($filename), 7);
+        $post_content = Markdown(trim(implode("", $file_array)));
 
         // Get the site title.
         $page_title = str_replace('# ', '', $fcontents[0]);

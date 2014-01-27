@@ -6,7 +6,7 @@
         <title><?php echo $page_title; ?></title>
 
         <!-- Metadata -->
-        <?php if(isset($âge_meta)) echo $page_meta; ?>
+        <?php if(isset($page_meta)) echo $page_meta; ?>
 
         <!-- Cascading Style Sheet -->
         <link rel="stylesheet" href="<?php echo BLOG_URL; ?>templates/base/base.css">
@@ -55,7 +55,7 @@
 
         <?php
             $string = '';
-            if(INFINITE_SCROLL == off && $total <= POSTS_PER_PAGE) {
+            if(INFINITE_SCROLL == "off" && $total <= POSTS_PER_PAGE) {
                 $string .= "<ul style=\"list-style:none; width:400px; margin:15px auto;\">";
 
                 for ($i = 1; $i<=$total;$i++) {

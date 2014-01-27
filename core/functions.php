@@ -80,18 +80,24 @@ function get_all_posts($options = array()) {
                 $post_category = str_replace(array("\n", '-'), '', $fcontents[4]);
 
                 // Early return if we only want posts from a certain category
-                if(isset($options['category']) && $options["category"] && $options["category"] != trim(strtolower($post_category))) {
+                if(isset($options['category']) && $options["category"] && $options["category"] != trim(strtolower($post_category)))
                     continue;
-                }
+
+                // Get the posts tags.
+                $post_tags = explode('|', trim(str_replace(array("\n", '-'), '', $fcontents[6])));
+                $post_tags = array_map('trim', $post_tags);
+
+                if(isset($options['tag']) && $options['tag'] && !in_array($options["tag"], $post_tags))
+                    continue;
 
                 // Define the post status.
                 $post_status = str_replace(array("\n", '- '), '', $fcontents[5]);
 
                 // Define the post content
-                $post_content = Markdown(join('', array_slice($fcontents, 6, count($fcontents) - 1)));
+                $post_content = Markdown(join('', array_slice($fcontents, 7, count($fcontents) - 1)));
 
                 // Define the post intro.
-                $post_intro = Markdown($fcontents[7]);
+                $post_intro = Markdown($fcontents[8]);
 
                 // Pull everything together for the loop.
                 $files[] = array(
@@ -102,6 +108,7 @@ function get_all_posts($options = array()) {
                     'post_date' => $post_date,
                     'post_category' => $post_category,
                     'post_status' => $post_status,
+                    'post_tags' => $post_tags,
                     'post_intro' => $post_intro,
                     'post_content' => $post_content,
                     'post_name' => $entry
@@ -113,6 +120,7 @@ function get_all_posts($options = array()) {
                 $post_authors_twitter[] = $post_author_twitter;
                 $post_categories[] = $post_category;
                 $post_statuses[] = $post_status;
+                $post_tags[] = $post_tags;
                 $post_intros[] = $post_intro;
                 $post_contents[] = $post_content;
                 $post_name[] = $entry;
@@ -125,6 +133,15 @@ function get_all_posts($options = array()) {
     } else {
         return false;
     }
+}
+
+/*-----------------------------------------------------------------------------------*/
+/* Get Posts for Selected Tag
+/*-----------------------------------------------------------------------------------*/
+
+function get_posts_for_tag($tag) {
+    $tag = trim(strtolower($tag));
+    return get_all_posts(array("tag" => $tag));
 }
 
 /*-----------------------------------------------------------------------------------*/

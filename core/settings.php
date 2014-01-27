@@ -10,10 +10,7 @@ define('CACHE_ADMIN', 'off');               // Don't serve the cache if the user
 DEFINE('CACHE_POST', 'off');                // Cache the post
 DEFINE('CACHE_NOTE', 'off');                // Cache the index
 
-ini_set('display_errors', false);           // Display errors if there are any.
-ini_set('session.use_cookies', 1);          // Use cookies to store session.
-ini_set('session.use_only_cookies', 1);     // Force cookies for session (phpsessionID forbidden in URL)
-ini_set('session.use_trans_sid', false);    // Prevent php to use sessionID in URL if cookies are disabled.
+ini_set('display_errors', true);           // Display errors if there are any.
 
 define('PAGINATION_ON_OFF', "on");          // Activate pagination system if it is on
 define('INFINITE_SCROLL', "on");            // Infinite scroll works only if pagination is on.
