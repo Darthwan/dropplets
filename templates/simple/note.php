@@ -9,9 +9,9 @@
         <?php if(isset($page_meta)) echo $page_meta; ?>
 
         <!-- Cascading Style Sheet -->
-        <link rel="stylesheet" href="<?php echo BLOG_URL; ?>templates/base/base.css">
+        <link rel="stylesheet" href="<?php echo $base_dir_url; ?>base.css">
         <link rel="stylesheet" href="<?php echo $template_dir_url; ?>styles/style.css">
-        <link rel="shortcut icon" href="<?php echo BLOG_URL; ?>templates/base/favicon.ico">
+        <link rel="shortcut icon" href="<?php echo $base_dir_url; ?>favicon.ico">
 
         <!-- RSS Feed Links -->
         <link rel="alternate" type="application/rss+xml" title="Subscribe using RSS" href="<?php echo BLOG_URL; ?>rss" />
@@ -43,7 +43,7 @@
                         <?php if($blog_google != "") { ?><span><a href="https://twitter.com/<?php echo $blog_twitter; ?>" title="&#64;<?php echo $blog_twitter; ?>"><i class="icon-twitter"></i></a></span><?php } ?>
                         <?php if($blog_google != "") { ?><span><a href="https://plus.google.com/u/0/<?php echo $blog_google; ?>" title="Google+"><i class="icon-google"></i></a></span><?php } ?>
                         <?php if($blog_facebook != "") { ?><span><a href="https://facebook.com/<?php echo $blog_facebook; ?>" title="Facebook"><i class="icon-facebook"></i></a></span><?php } ?>
-                        <?php if($blog_flattr != "") { ?><span><a href="https://flattr.com/submit/auto?user_id=<?php echo $blog_flattr; ?>&amp;url=<?php echo BLOG_URL; ?>&amp;title=<?php echo $blog_title; ?>&amp;language=<?php echo $blog_language; ?>&amp;category=text" title="Flattr"><i class="icon-flattr"></i></a></span><?php } ?>
+                        <?php if($blog_flattr != "") { ?><span><a href="https://flattr.com/submit/auto?user_id=<?php echo transformSpace($blog_flattr); ?>&amp;url=<?php echo BLOG_URL; ?>&amp;title=<?php echo transformSpace($blog_title); ?>&amp;language=<?php echo $blog_language; ?>&amp;category=text" title="Flattr"><i class="icon-flattr"></i></a></span><?php } ?>
                         <span><a href="<?php echo BLOG_URL; ?>rss" title="Flux RSS"><i class="icon-rss"></i></a></span>
                     </p>
                 </div>
@@ -54,11 +54,10 @@
         <?php echo $content; ?>
 
         <?php
-            $string = '';
-            if(INFINITE_SCROLL == "off" && $total <= POSTS_PER_PAGE) {
-                $string .= "<ul style=\"list-style:none; width:400px; margin:15px auto;\">";
+            if(INFINITE_SCROLL == "off" && PAGINATION_ON_OFF == "on" && $total <= POSTS_PER_PAGE) {
+                $string = "<ul style=\"list-style:none; width:400px; margin:15px auto;\">";
 
-                for ($i = 1; $i<=$total;$i++) {
+                for($i = 1; $i <= $total; $i++) {
                     if ($i == $page) {
                         $string .= "<li style=\"display: inline-block; margin:5px;\" ><a href=\"\" class=\"button active\">".$i."</a></li>";
                     } else {
@@ -67,14 +66,14 @@
                 }
 
                 $string .= "</ul>";
+                echo $string;
             }
-            echo $string;
         ?>
 
         <!-- jQuery & Required Scripts -->
     <script src="<?php echo BLOG_URL; ?>core/includes/js/jquery-1.10.2.min.js"></script>
 
-    <?php if (INFINITE_SCROLL !== "off") { ?>
+    <?php if (INFINITE_SCROLL != "off") { ?>
     <!-- Post Pagination -->
     <script>
         var infinite = true;
@@ -118,7 +117,7 @@
     <?php echo FOOTER_INJECT; ?>
 
     <!-- Tools -->
-    <?php include('./core/tools.php'); ?>
+    <?php include('core/tools.php'); ?>
 
     <!-- Plugin Footer Injection -->
     <?php action::run('dp_footer'); ?>

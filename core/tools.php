@@ -242,7 +242,9 @@ if (!isset($_SESSION['user'])) { ?>
 
         <div class="dp-sub-panel" id="dp-templates">
             <div class="dp-row dp-templates">
-                <?php get_installed_templates('all'); ?>
+                <ul>
+                    <?php get_installed_templates('all'); ?>
+                </ul>
             </div>
         </div>
 

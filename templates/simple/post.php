@@ -24,14 +24,14 @@
             <?php echo $post_content; ?>
 
             <ul class="actions">
-                <li><a class="button" href="https://twitter.com/intent/tweet?screen_name=<?php echo $post_author_twitter; ?>&amp;text=<?php echo $post_title; ?>%20<?php echo $post_link; ?>" data-dnt="true">Comment on Twitter</a></li>
+                <li><a class="button" href="https://twitter.com/intent/tweet?screen_name=<?php echo $post_author_twitter; ?>&amp;text=<?php echo transformSpace($post_title); ?>%20<?php echo $post_link; ?>" data-dnt="true">Comment on Twitter</a></li>
                 <li><a class="button" href="<?php echo $blog_url; ?><?php echo $post_name; ?>">Source ".md"</a></li>
-                <?php if($blog_flattr != "") { ?><li><a class="button" href="https://flattr.com/submit/auto?user_id=<?php echo $blog_flattr; ?>&amp;url=<?php echo $post_link; ?>&amp;title=<?php echo $post_title; ?>&amp;language=<?php echo $blog_language; ?>&amp;category=text">Flattr me!</a></li><?php } ?>
+                <?php if($blog_flattr != "") { ?><li><a class="button" href="https://flattr.com/submit/auto?user_id=<?php echo transformSpace($blog_flattr); ?>&amp;url=<?php echo $post_link; ?>&amp;title=<?php echo transformSpace($post_title); ?>&amp;language=<?php echo $blog_language; ?>&amp;category=text">Flattr me!</a></li><?php } ?>
                 <li><a class="button" href="<?php echo $blog_url; ?>">More Articles</a></li>
             </ul>
             <ul class="actions">
-                <li><a class="button" href="https://twitter.com/intent/tweet?text=&quot;<?php echo $post_title; ?>&quot;%20<?php echo $post_link; ?>%20via%20&#64;<?php echo $post_author_twitter; ?>" data-dnt="true">Share on Twitter</a></li>
-                <li><a class="button" href="https://www.facebook.com/sharer.php?u=<?php echo $post_link; ?>&amp;t=<?php echo $post_title; ?>" data-dnt="true">Share on Facebook</a></li>
+                <li><a class="button" href="https://twitter.com/intent/tweet?text=&quot;<?php echo transformSpace($post_title); ?>&quot;%20<?php echo $post_link; ?>%20via%20&#64;<?php echo $post_author_twitter; ?>" data-dnt="true">Share on Twitter</a></li>
+                <li><a class="button" href="https://www.facebook.com/sharer.php?u=<?php echo $post_link; ?>&amp;t=<?php echo transformSpace($post_title); ?>" data-dnt="true">Share on Facebook</a></li>
                 <li><a class="button" href="https://plus.google.com/share?url=<?php echo $post_link; ?>&amp;hl=fr" data-dnt="true">Share on Google+</a></li>
             </ul>
 

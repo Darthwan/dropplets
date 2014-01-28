@@ -10,7 +10,7 @@ define('CACHE_ADMIN', 'off');               // Don't serve the cache if the user
 DEFINE('CACHE_POST', 'off');                // Cache the post
 DEFINE('CACHE_NOTE', 'off');                // Cache the index
 
-ini_set('display_errors', true);           // Display errors if there are any.
+ini_set('display_errors', false);           // Display errors if there are any.
 
 define('PAGINATION_ON_OFF', "on");          // Activate pagination system if it is on
 define('INFINITE_SCROLL', "on");            // Infinite scroll works only if pagination is on.
@@ -50,6 +50,7 @@ if(file_exists(SETTINGS_FILE)) {
 
     // Get the active template directory.
     $template_dir     = './templates/' . ACTIVE_TEMPLATE . '/';
+    $base_dir_url     = BLOG_URL . 'templates/base/';
     $template_dir_url = BLOG_URL . 'templates/' . ACTIVE_TEMPLATE . '/';
     $index_file     = $template_dir . 'note.php';
     $post_file      = $template_dir . 'post.php';
@@ -61,3 +62,11 @@ $feed_max_items = '10';
 $date_format = 'F jS, Y';
 $error_title = 'Sorry, But That&#8217;s Not Here';
 $error_text  = 'Really sorry, but what you&#8217;re looking for isn&#8217;t here. Click the button below to find something else that might interest you.';
+
+$category = NULL;
+$tag      = NULL;
+$filename = NULL;
+
+// Password hashing via phpass.
+$hasher = new PasswordHash(8, FALSE);
+$login_error = '';

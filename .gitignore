@@ -15,3 +15,4 @@ posts/*.jpg
 cache/*.png
 cache/*.jpeg
 cache/*.jpg
+cache/*.html
