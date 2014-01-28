@@ -21,9 +21,9 @@ define('CACHE_DIR', 'cache/');
 define('FILE_EXT', '.md');
 
 if (glob(POST_DIR . '*.md') != false)
-    define('POSTS_DIR', 'posts/');
+    define('POSTS_DIR', './posts/');
 else
-    define('POSTS_DIR', 'posts/welcome/');
+    define('POSTS_DIR', './posts/welcome/');
 
 if(file_exists(SETTINGS_FILE)) {
     require_once SETTINGS_FILE;
