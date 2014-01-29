@@ -37,8 +37,8 @@
 
             <div class="clear"></div>
             <footer>
-                <?php echo $blog_title; ?> est mis à disposition selon les termes de la licence Creative Commons Paternité - Partage à l'Identique 3.0 non transcrit (<a href="http://creativecommons.org/licenses/by-sa/3.0/">en savoir plus</a>). Source: <a href="<?php echo BLOG_URL; ?>"><?php echo BLOG_URL; ?></a>.<br />
-                Propulsé grâce à <a href="http://dropplets.com/">Dropplets</a> avec de nombreuses modifications, <a href="https://github.com/Hennek/dropplets">voir le fork</a>.<br />
+                <?php echo $blog_title; ?> is published under the terms of the Creative Commons Attribution - ShareAlike (<a href="http://creativecommons.org/licenses/by-sa/3.0/">learn more</a>).<br />
+                Powered by a <a href="https://github.com/Hennek/dropplets">fork</a> of <a href="http://dropplets.com/">Dropplets</a>.<br />
                 <a href="https://github.com/Hennek/dropplets/issues">Signaler un problème</a> !
             </footer>
         </div>
