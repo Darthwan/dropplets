@@ -25,7 +25,7 @@
 
             <ul class="actions">
                 <li><a class="button" href="https://twitter.com/intent/tweet?screen_name=<?php echo $post_author_twitter; ?>&amp;text=<?php echo transformSpace($post_title); ?>%20<?php echo $post_link; ?>" data-dnt="true">Comment on Twitter</a></li>
-                <li><a class="button" href="<?php echo $blog_url; ?><?php echo $post_name; ?>">Source ".md"</a></li>
+                <li><a class="button" href="<?php echo $post_name; ?>">Source ".md"</a></li>
                 <?php if($blog_flattr != "") { ?><li><a class="button" href="https://flattr.com/submit/auto?user_id=<?php echo transformSpace($blog_flattr); ?>&amp;url=<?php echo $post_link; ?>&amp;title=<?php echo transformSpace($post_title); ?>&amp;language=<?php echo $blog_language; ?>&amp;category=text">Flattr me!</a></li><?php } ?>
                 <li><a class="button" href="<?php echo $blog_url; ?>">More Articles</a></li>
             </ul>

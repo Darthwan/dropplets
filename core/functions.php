@@ -72,10 +72,10 @@ function get_all_posts($options = array()) {
                 $post_title = Markdown($fcontents[0]);
 
                 // Define the post author.
-                $post_author = str_replace(array("\n", '-'), '', $fcontents[1]);
+                $post_author = str_replace(array("\n", "\r", "\n\r", "\n\r", '- '), '', $fcontents[1]);
 
                 // Define the post author Twitter account.
-                $post_author_twitter = str_replace(array("\n", '- '), '', $fcontents[2]);
+                $post_author_twitter = str_replace(array("\n", "\r", "\n\r", "\n\r", '- '), '', rtrim($fcontents[2]));
 
                 // Define the published date.
                 $post_date = str_replace('-', '', $fcontents[3]);

@@ -67,16 +67,16 @@ if (!file_exists($filename)) {
 } else {
     // Get the post title.
     $post_title = Markdown($fcontents[0]);
-    $post_title = str_replace(array("\n",'<h1>','</h1>'), '', $post_title);
+    $post_title = str_replace(array("\n", "\r", "\n\r", "\n\r", '- ','<h1>','</h1>'), '', $post_title);
 
     // Get the post intro.
     $post_intro = htmlspecialchars($fcontents[8]);
 
     // Get the post author.
-    $post_author = str_replace(array("\n", '-'), '', $fcontents[1]);
+    $post_author = str_replace(array("\n", "\r", "\n\r", "\n\r", '- '), '', $fcontents[1]);
 
     // Get the post author Twitter ID.
-    $post_author_twitter = str_replace(array("\n", '- '), '', $fcontents[2]);
+    $post_author_twitter = str_replace(array("\n", "\r", "\n\r", "\n\r", '- '), '', $fcontents[2]);
 
     // Get the published date.
     $published_iso_date = str_replace('-', '', $fcontents[3]);
