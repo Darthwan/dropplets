@@ -258,6 +258,7 @@ ul.actions li {
     width: 100%;
     margin-top: 3px;
     list-style: none;
+    text-align: left;
 }
 
 /* Meta
@@ -593,7 +594,7 @@ article.draft {
 @media (max-width: 1160px) {
 
     .row {
-        width: 960px;
+        width: 1000px;
     }
 
     .row .one-quarter {
@@ -632,15 +633,15 @@ article.draft {
 @media (max-width: 820px) {
 
     .row {
-        width: 600px;
+        width: 700px;
     }
 
     .row .one-quarter {
-        width: 155px;
+        width: 200px;
     }
 
     .row .three-quarters {
-        width: 365px;
+        width: 410px;
     }
 
 }
@@ -650,51 +651,20 @@ article.draft {
 
 @media (max-width: 640px) {
 
-    .row {
-        width: 480px;
+    h2 {
+        margin-top: 2em;
     }
-
-    .row .one-quarter,
-    .row .three-quarters {
-        width: 440px;
-    }
-
-}
-
-/* S
-*********************************************************************************************/
-
-@media (max-width: 520px) {
 
     .row {
-        width: 360px;
+        max-width: 90%;
+        margin: auto;
+        display: block;
     }
 
     .row .one-quarter,
     .row .three-quarters {
-        width: 320px;
-    }
-
-}
-
-/* XS
-*********************************************************************************************/
-
-@media (max-width: 400px) {
-
-    .row .one-quarter,
-    .row .three-quarters {
-        padding: 0;
-    }
-
-
-    .row {
-        width: 240px;
-    }
-
-    .row .one-quarter,
-    .row .three-quarters {
-        width: 240px;
+        width: 100%;
+        padding: 0 0;
     }
 
 }

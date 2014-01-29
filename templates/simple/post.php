@@ -39,7 +39,7 @@
             <footer>
                 <?php echo $blog_title; ?> is published under the terms of the Creative Commons Attribution - ShareAlike (<a href="http://creativecommons.org/licenses/by-sa/3.0/">learn more</a>).<br />
                 Powered by a <a href="https://github.com/Hennek/dropplets">fork</a> of <a href="http://dropplets.com/">Dropplets</a>.<br />
-                <a href="https://github.com/Hennek/dropplets/issues">Signaler un problème</a> !
+                <a href="https://github.com/Hennek/dropplets/issues">Report a issue</a>!
             </footer>
         </div>
     </div>
